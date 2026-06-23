@@ -1,3 +1,5 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -40,128 +42,150 @@ class _HomeScreenState
 
   @override
   Widget build(BuildContext context) {
-
-    if (currentIndex == 1) {
-      return const FavoritesScreen();
-    }
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Recipe Explorer"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) =>
-                      const SearchScreen(),
+        title: Text(
+          currentIndex == 0
+              ? "Recipe Explorer"
+              : "Favorites",
+        ),
+        actions: currentIndex == 0
+            ? [
+                IconButton(
+                  icon:
+                      const Icon(Icons.search),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            const SearchScreen(),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          )
-        ],
+              ]
+            : [],
       ),
 
-      body: Consumer<MealProvider>(
-        builder: (_, provider, __) {
+      body: currentIndex == 0
+          ? Consumer<MealProvider>(
+              builder: (_, provider, __) {
 
-          if (provider.isLoading) {
-            return const LoadingIndicator();
-          }
+                if (provider.isLoading) {
+                  return const LoadingIndicator();
+                }
 
-          return RefreshIndicator(
-            onRefresh: () async {
-              await provider.loadMeals(
-                  selectedCategory);
-            },
-            child: Column(
-              children: [
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    await provider.loadMeals(
+                      selectedCategory,
+                    );
+                  },
+                  child: Column(
+                    children: [
 
-                SizedBox(
-                  height: 100,
-                  child: ListView.builder(
-                    scrollDirection:
-                        Axis.horizontal,
-                    itemCount:
-                        provider.categories.length,
-                    itemBuilder: (_, index) {
+                      SizedBox(
+                        height: 100,
+                        child: ListView.builder(
+                          scrollDirection:
+                              Axis.horizontal,
+                          itemCount:
+                              provider.categories
+                                  .length,
+                          itemBuilder:
+                              (_, index) {
 
-                      final category =
-                          provider.categories[index];
+                            final category =
+                                provider.categories[
+                                    index];
 
-                      return GestureDetector(
-                        onTap: () async {
+                            return GestureDetector(
+                              onTap: () async {
 
-                          setState(() {
-                            selectedCategory =
-                                category.name;
-                          });
+                                setState(() {
+                                  selectedCategory =
+                                      category.name;
+                                });
 
-                          await provider.loadMeals(
-                            category.name,
-                          );
-                        },
-                        child: Container(
-                          width: 90,
-                          margin:
-                              const EdgeInsets.all(8),
-                          child: Column(
-                            children: [
-                              CircleAvatar(
-                                backgroundImage:
-                                    NetworkImage(
-                                  category.image,
+                                await provider
+                                    .loadMeals(
+                                  category.name,
+                                );
+                              },
+                              child: Container(
+                                width: 90,
+                                margin:
+                                    const EdgeInsets
+                                        .all(8),
+                                child: Column(
+                                  children: [
+
+                                    CircleAvatar(
+                                      backgroundImage:
+                                          NetworkImage(
+                                        category
+                                            .image,
+                                      ),
+                                    ),
+
+                                    const SizedBox(
+                                      height: 5,
+                                    ),
+
+                                    Text(
+                                      category.name,
+                                      textAlign:
+                                          TextAlign
+                                              .center,
+                                    ),
+                                  ],
                                 ),
                               ),
-                              Text(
-                                category.name,
-                              )
-                            ],
-                          ),
+                            );
+                          },
                         ),
-                      );
-                    },
+                      ),
+
+                      Expanded(
+                        child: GridView.builder(
+                          itemCount:
+                              provider.meals.length,
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                          ),
+                          itemBuilder:
+                              (_, index) {
+
+                            final meal =
+                                provider.meals[
+                                    index];
+
+                            return MealCard(
+                              meal: meal,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        MealDetailScreen(
+                                      mealId:
+                                          meal.id,
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-
-                Expanded(
-                  child: GridView.builder(
-                    itemCount:
-                        provider.meals.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                    ),
-                    itemBuilder: (_, index) {
-
-                      final meal =
-                          provider.meals[index];
-
-                      return MealCard(
-                        meal: meal,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  MealDetailScreen(
-                                mealId:
-                                    meal.id,
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+                );
+              },
+            )
+          : const FavoritesScreen(),
 
       bottomNavigationBar:
           BottomNavigationBar(
